@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Focus Timer</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --primary: #38bdf8;
+            --danger: #fb7185;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevents bouncing on mobile */
+        }
+
+        .timer-card {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 350px;
+            padding: 2rem;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        #timer-display {
+            font-size: 5.5rem;
+            font-weight: 800;
+            font-family: 'Courier New', Courier, monospace;
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            border: none;
+            padding: 18px;
+            border-radius: 18px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+            -webkit-tap-highlight-color: transparent; /* Removes blue flash on tap */
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #start-btn {
+            background: var(--primary);
+            color: #0f172a;
+        }
+
+        #reset-btn {
+            background: #334155;
+            color: white;
+        }
+
+        .vibrate-error {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="timer-card">
+        <div class="label" id="status-label">Study Session</div>
+        <div id="timer-display">25:00</div>
+        
+        <div class="controls">
+            <button id="start-btn">START</button>
+            <button id="reset-btn">↺</button>
+        </div>
+    </div>
+
+    <script>
+        let secondsLeft = 25 * 60;
+        let timer = null;
+        const display = document.getElementById('timer-display');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const statusLabel = document.getElementById('status-label');
+
+        function updateUI() {
+            const mins = Math.floor(secondsLeft / 60);
+            const secs = secondsLeft % 60;
+            const timeString = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            display.textContent = timeString;
+            document.title = timeString + " - Timer";
+        }
+
+        function triggerVibrate() {
+            if ("vibrate" in navigator) {
+                navigator.vibrate([200, 100, 200]); // Vibrate pattern for Android
+            }
+        }
+
+        function startTimer() {
+            if (timer) {
+                // Handle Pause
+                clearInterval(timer);
+                timer = null;
+                startBtn.textContent = "RESUME";
+                startBtn.style.background = "#fbbf24"; // Yellow
+            } else {
+                // Handle Start
+                startBtn.textContent = "PAUSE";
+                startBtn.style.background = "#fb7185"; // Red
+                timer = setInterval(() => {
+                    if (secondsLeft > 0) {
+                        secondsLeft--;
+                        updateUI();
+                    } else {
+                        clearInterval(timer);
+                        timer = null;
+                        triggerVibrate();
+                        alert("Time is up! Great job.");
+                        resetTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            timer = null;
+            secondsLeft = 25 * 60;
+            startBtn.textContent = "START";
+            startBtn.style.background = "#38bdf8"; // Original Blue
+            updateUI();
+        }
+
+        startBtn.addEventListener('click', startTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        // Initial UI call
+        updateUI();
+    </script>
+</body>
+</html>
